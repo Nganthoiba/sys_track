@@ -61,7 +61,31 @@ class Complains extends Model{
     public function read($cond = ""){
         $qry = "select * from ".$this->table_name." ".$cond;
         $res = self::$conn->query($qry);
-        $rows = $res->fetchall(PDO::FETCH_ASSOC);
+        //$rows = $res->fetchall(PDO::FETCH_ASSOC);
+        $rows = array();
+        $user = new Users();
+        $system = new Systems();
+        while($row = $res->fetch(PDO::FETCH_ASSOC)){
+            $row['create_at'] = (int)$row['create_at'];
+            $row['update_at'] = (int)$row['update_at'];
+            $user_det = $user->find($row['user_id']);
+            if($user_det!=null){
+                $row['complainer_name'] = $user_det['f_name']." ".$user_det['l_name'];
+            }
+            else{
+                $row['complainer_name'] = "unknown";
+            }
+            $system_det = $system->find($row['sys_id']);
+            if($system_det!=null){
+                $row['lab_no'] = $system_det['lab_no'];
+                $row['sys_no'] = $system_det['sys_no'];
+            }
+            else{
+                $row['lab_no'] = "";
+                $row['sys_no'] = "";
+            }
+            $rows[] = $row;
+        }
         return $rows;
     }
     

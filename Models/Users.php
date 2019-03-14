@@ -30,7 +30,7 @@ class Users extends Model{
     
     public function find($id){
         //$user = new Users();
-        $res = $this->read("where Id = ".$id);
+        $res = $this->read("where Id = '".$id."'");
         if(count($res)){
             $row = $res[0];
             return $row;
@@ -41,8 +41,7 @@ class Users extends Model{
             $this->email = $row['email'];
             $this->role_id = $row['role_id'];
             $this->password = $row['password'];
-            $this->create_at = $row['create_at'];
-             
+            $this->create_at = $row['create_at']; 
              */
         }
         return null;
