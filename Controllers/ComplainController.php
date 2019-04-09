@@ -151,7 +151,10 @@ class ComplainController extends Api {
                 break;
             // if user role is Finance Officer
             case 4: $max_step = 3;
-                break;          
+                break;
+            // if user is Executive Director
+            case 5: $max_step = 4;
+                break;
         }
         try{
             $m = new Model();

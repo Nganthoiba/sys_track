@@ -55,6 +55,17 @@ class Transactions extends Model{
         }
         return $rows;
     }
+    
+    public static function isTransactionExist($complain_id,$step_id){
+        $qry = "select * from transactions where complain_id='$complain_id' and step_id=$step_id";
+        $res = self::$conn->query($qry);
+        if($res->rowCount()>0){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
     /***** private method *****/
     private function getStepDescription($step_id){
         $qry = "select * from steps where id=".$step_id;

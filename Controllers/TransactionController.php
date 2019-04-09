@@ -102,16 +102,35 @@ class TransactionController extends Api{
             $txn->step_id=2;
             $txn->complain_id = $input_data->complain_id;
             $txn->user_id = $user_id;
-            if(!$txn->create()){
-                $conn->rollback();
-                $data = array("status"=>false,"message"=>"An error occurs.");
-                return $this->_response($data, 500);
+            if(!Transactions::isTransactionExist($txn->complain_id, 2)){
+                if(!$txn->create()){
+                    $conn->rollback();
+                    $data = array("status"=>false,"message"=>"An error occurs.");
+                    return $this->_response($data, 500);
+                }
             }
         }
         $conn->commit();
         
         $data = array("status"=>true,"message"=>"Submitted successfully.");
         return $this->_response($data, 200);
+    }
+    
+    public function isTransactionExist(){
+        $params = $this->getParams();
+        if(count($params)>=2){
+            $complain_id = $params[0];
+            $step_id = $params[1];
+            if(Transactions::isTransactionExist($complain_id, $step_id)){
+                return $this->_response(array("message"=>"Transaction already exist."),200);
+            }
+            else{
+                return $this->_response(array("message"=>"Transaction not exist."),404);
+            }
+        }
+        else{
+            return $this->response_data(array("mesage"=>"Invalid request"),403);
+        }
     }
     
     /******* private methods *******/
