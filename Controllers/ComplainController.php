@@ -137,29 +137,48 @@ class ComplainController extends Api {
         $user_id = Login_details::getUserId($token);
         $user = new Users();
         $user_role = $user->getUserRoleId($user_id);
-        $max_step = 1; //by default
+        $max_step = 0; //by default
+        // the variable $max_step plays an important role here. This indicates any work flow steps pending at him/her
         switch($user_role){
-            case 1:
-            case 2: $max_step = 1;
+            // if user role is lab assistant
+            case 1: $max_step = 0;                
                 break;
-            case 3: $max_step = 2;
+            // if user role is store keeper
+            case 2: $max_step = 2;
                 break;
-            case 4: $max_step = 4;
+            // if user role is Technical Officer
+            case 3: $max_step = 1;
+                break;
+            // if user role is Finance Officer
+            case 4: $max_step = 3;
                 break;          
         }
         try{
             $m = new Model();
             $complains = array();
-            $qry = " select C.Id,max(T.step_id) as last_step from complain C,transactions T ".
-                   " where C.Id = T.complain_id ".
-                   " group by C.Id order by C.create_at desc";
+            if($user_role==3){
+                $qry = " select C.Id,max(T.step_id) as last_step from complain C,transactions T ".
+                       " where C.Id = T.complain_id and C.problem_fixed='N'".
+                       " group by C.Id order by C.create_at desc";
+            }
+            else{
+                $qry = " select C.Id,max(T.step_id) as last_step from complain C,transactions T ".
+                       " where C.Id = T.complain_id ".
+                       " group by C.Id order by C.create_at desc";    
+            }
             $res=$m::$conn->query($qry);
             while($row = $res->fetch(PDO::FETCH_ASSOC)){
                 /**** Condition to find pending task *****/
                 // If last step is equal to max_step
-                if((int)$row['last_step']=$max_step){
+                if((int)$row['last_step']==$max_step){
+                    $complains[] = $this->model->find($row['Id']);
+                }else if($user_role==3){
                     $complains[] = $this->model->find($row['Id']);
                 }
+            }
+            if(count($complains)==0){
+                $data =  array("message"=>"No pending tasks","status"=>false);
+                return $this->_response($data, 404); 
             }
             $data =  array("message"=>"list of pending tasks","complains"=>$complains,"status"=>true);
             return $this->_response($data, 200);
@@ -169,6 +188,23 @@ class ComplainController extends Api {
         }
     }
     
+    /*** method to get status of a complain ***/
+    public function getStatus(){
+        $param = $this->getParams();
+        if(count($param)==0){
+            $data =  array("message"=>"Invalid request","status"=>false);
+            return $this->_response($data, 404); 
+        }
+        $complain_id = $param[0];
+        $txn = new Transactions();
+        $res = $txn->read("where complain_id='$complain_id' order by step_id");
+        if(count($res)==0){
+            $data =  array("message"=>"Not found","status"=>false);
+            return $this->_response($data, 404); 
+        }
+        $data =  array("message"=>"Transactions details for the complain with id $complain_id","steps"=>$res,"status"=>true);
+        return $this->_response($data, 200);
+    }
     
     /******* private methods ******/
     private function validateData($data){

@@ -9,7 +9,7 @@
 /**
  * This is the default controller just for testing
  *
- * @author Nganthoiba
+ * 
  */
 
 class DefaultController extends Controller{

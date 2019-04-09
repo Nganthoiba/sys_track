@@ -9,7 +9,7 @@
 /**
  * Description of Transactions
  *
- * @author Nganthoiba
+ * 
  */
 class Transactions extends Model{
     public $complain_id;        
@@ -45,7 +45,26 @@ class Transactions extends Model{
     public function read($cond=""){
         $qry = "select * from ".$this->table_name." ".$cond;
         $res = self::$conn->query($qry);
-        $rows = $res->fetchall(PDO::FETCH_ASSOC);
+        $rows = array();
+        //$rows = $res->fetchall(PDO::FETCH_ASSOC);
+        while ($row = $res->fetch(PDO::FETCH_ASSOC)){
+            $row['description']= $this->getStepDescription($row['step_id']);
+            $row['create_at'] = (int)$row['create_at'];
+            $row['step_id'] = (int)$row['step_id'];
+            $rows[]=$row;
+        }
         return $rows;
+    }
+    /***** private method *****/
+    private function getStepDescription($step_id){
+        $qry = "select * from steps where id=".$step_id;
+        $res = self::$conn->query($qry);
+        if($res->rowCount()==0){
+            return null;
+        }
+        else{
+            $data = $res->fetch(PDO::FETCH_ASSOC);
+            return $data['description'];
+        }
     }
 }

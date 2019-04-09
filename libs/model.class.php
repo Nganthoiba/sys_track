@@ -14,7 +14,7 @@
 include_once ('DbConnect.php');
 class Model {
     public static $conn; //database connection variable
-    private $table_name;
+    protected $table_name;
     public function __construct() {
         $this->table_name = null;
         $db_server = Config::get('db_server');

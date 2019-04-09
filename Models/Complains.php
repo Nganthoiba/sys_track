@@ -9,7 +9,7 @@
 /**
  * Description of Complains
  *
- * @author Nganthoiba
+ * 
  */
 class Complains extends Model{
     public $Id;
@@ -18,6 +18,8 @@ class Complains extends Model{
     public $create_at;
     public $update_at;
     public $user_id;
+    public $status;
+    public $problem_fixed;
     //put your code here
     public function __construct() {
         parent::__construct();
@@ -124,15 +126,6 @@ class Complains extends Model{
         $rows = $this->read(" where Id = '$id' ");
         if(count($rows)>0){
             $row = $rows[0];
-            /*
-             $this->Id = $row['Id'];
-            $this->sys_id = $row['sys_id'];
-            $this->problem_area = $row['problem_area'];
-            $this->create_at = $row['create_at'];
-            $this->update_at = $row['update_at'];
-            $this->user_id = $row['user_id'];
-            return $this;
-            */
             return $row;
         }
         else{

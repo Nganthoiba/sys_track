@@ -48,10 +48,26 @@ class Users extends Model{
     }
     
     public function read($cond=""){
-        $qry = "select Id,f_name,l_name,email,phone_no,role_id,password,create_at from ".$this->table_name." ".$cond;
+        $qry = "select Id,f_name,l_name,email,phone_no,role_id,create_at from ".$this->table_name." ".$cond;
         $res = self::$conn->query($qry);
+        $data = array();
         $rows = $res->fetchall(PDO::FETCH_ASSOC);
-        return $rows;
+        /*while ($row = $res->fetch(PDO::FETCH_ASSOC)){
+            $row['role_id'] = (int)$row['role_id'];
+            $row['create_at'] = (int)$row['create_at'];
+            $rows[] = $row;
+        }*/
+        foreach ($rows as $row){
+            $row['role_id'] = (int)$row['role_id'];
+            $row['create_at'] = (int)$row['create_at'];
+            
+            $role = new Roles();
+            $role_detail = $role->find($row['role_id']);
+            
+            $row['role_name'] = $role_detail['role_name'];
+            $data[] = $row;
+        }
+        return $data;
     }
     
     public function create(){
