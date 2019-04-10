@@ -138,16 +138,14 @@ class Account_apiController extends Api{
     
     public function changePassword(){
         $data = json_decode(file_get_contents("php://input"));
-        if(isset($data->token) && isset($data->old_password) && isset($data->new_password) && isset($data->user_id)){
-            
-            $data->token=htmlspecialchars(strip_tags($data->token));
+        $token = getAuthorizedToken();
+        if(Login_details::isValidToken($token) && isset($data->old_password) && isset($data->new_password)){
+            $user_id = Login_details::getUserId($token);
             $data->old_password=htmlspecialchars(strip_tags($data->old_password));
             $data->new_password=htmlspecialchars(strip_tags($data->new_password));
-            $data->user_id=htmlspecialchars(strip_tags($data->user_id));
-            
+            $data->user_id=htmlspecialchars(strip_tags($user_id));
             $user = new Users();
-            $user->find($data->user_id);
-            
+            $user->find($user_id);
             if($data->old_password!=$user->password){
                 $response = array("message"=>"Your old password is wrong","state"=>false);
                 return $this->_response($response,500);
@@ -161,5 +159,42 @@ class Account_apiController extends Api{
             $response = array("message"=>"Invalid parameters","state"=>false);
             return $this->_response($response,500);
         }
+    }
+    
+    public function updateProfile(){
+        $data = json_decode(file_get_contents("php://input"));
+        $token = getAuthorizedToken();
+        if(Login_details::isValidToken($token) && $this->isValid($data)){
+            $user_id = Login_details::getUserId($token);
+            $user = new Users();
+            $user->find($user_id);
+            $user->f_name = htmlspecialchars(strip_tags($data->f_name));
+            $user->l_name = htmlspecialchars(strip_tags($data->l_name));
+            $user->email = htmlspecialchars(strip_tags($data->email));
+            $user->phone_no = htmlspecialchars(strip_tags($data->phone_no));
+            
+            if($user->update()){
+                unset($user->password);// so that client will not receive what is password
+                $role = new Roles();
+                $role_detail = $role->find($user->role_id);
+                $user->role_name = $role_detail['role_name'];
+                $response = array("message"=>"Your profile has been updated","state"=>true,"user"=>$user);
+                return $this->_response($response,200);
+            }
+            else{
+                $response = array("message"=>"Failed to update","state"=>false);
+                return $this->_response($response,500);
+            }
+        }
+        else{
+            $response = array("message"=>"Invalid parameters","state"=>false);
+            return $this->_response($response,500);
+        }
+    }
+    private function isValid($data){
+        if(isset($data->f_name) && isset($data->l_name) && isset($data->email) && isset($data->phone_no)){
+            return true;
+        }
+        return false;
     }
 }

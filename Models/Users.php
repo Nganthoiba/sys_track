@@ -30,19 +30,21 @@ class Users extends Model{
     
     public function find($id){
         //$user = new Users();
-        $res = $this->read("where Id = '".$id."'");
-        if(count($res)){
-            $row = $res[0];
-            return $row;
-            /*
+        //$res = $this->read("where Id = '".$id."'");
+        $qry = "select * from ".$this->table_name." where Id = '$id'";
+        $res = self::$conn->query($qry);
+        $rows = $res->fetchall(PDO::FETCH_ASSOC);
+        if(count($rows)>0){
+            $row = $rows[0];
             $this->Id = $id;
             $this->f_name = $row['f_name'];
             $this->l_name = $row['l_name'];
             $this->email = $row['email'];
             $this->role_id = $row['role_id'];
+            $this->phone_no = $row['phone_no'];
             $this->password = $row['password'];
-            $this->create_at = $row['create_at']; 
-             */
+            $this->create_at = $row['create_at'];
+            return $row;
         }
         return null;
     }
@@ -110,15 +112,22 @@ class Users extends Model{
                 . "phone_no = :phone_no,"
                 . "password = :password,"
                 . "role_id = :role_id "
-                . "where Id = ".$this->Id;
-        $stmt = self::$conn->prepare($qry);
-        $stmt->bindParam(':f_name', $this->f_name);
-        $stmt->bindParam(':l_name', $this->l_name);
-        $stmt->bindParam(':email', $this->email);
-        $stmt->bindParam(':phone_no', $this->phone_no);
-        $stmt->bindParam(':password', $this->password);
-        $stmt->bindParam(':role_id', $this->role_id);
-        return $stmt->execute();
+                . "where Id = :Id";
+        try{
+            $stmt = self::$conn->prepare($qry);
+            $stmt->bindParam(':f_name', $this->f_name);
+            $stmt->bindParam(':l_name', $this->l_name);
+            $stmt->bindParam(':email', $this->email);
+            $stmt->bindParam(':phone_no', $this->phone_no);
+            $stmt->bindParam(':password', $this->password);
+            $stmt->bindParam(':role_id', $this->role_id);
+            $stmt->bindParam(':Id', $this->Id);
+            $res = $stmt->execute();
+            return $res;
+        }catch(Exception $e){
+            return false;
+        }
+        
     }
     
     public function delete(){
